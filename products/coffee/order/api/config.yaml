@@ -1,0 +1,16 @@
+database:
+  host: ${ORDER_DB_HOST}
+  port: ${ORDER_DB_PORT}
+  username: ${ORDER_DB_USERNAME}
+  password: ${ORDER_DB_PASSWORD}
+
+items:
+  - order_id: 1
+    user_id: 1
+    price: 1
+  - order_id: 2
+    user_id: 2
+    price: 2
+  - order_id: 3
+    user_id: 3
+    price: 3

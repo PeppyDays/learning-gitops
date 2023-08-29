@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "order"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+packages = [{include = "order", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.101.0"
+pyyaml = "^6.0.1"
+uvicorn = "^0.23.2"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+pytest-dotenv = "^0.5.2"
+httpx = "^0.24.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+isort = "^5.12.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

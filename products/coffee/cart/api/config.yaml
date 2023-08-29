@@ -1,0 +1,19 @@
+database:
+  host: ${CART_DB_HOST}
+  port: ${CART_DB_PORT}
+  username: ${CART_DB_USERNAME}
+  password: ${CART_DB_PASSWORD}
+
+items:
+  - cart_id: 1
+    user_id: 1
+    price: 1
+  - cart_id: 2
+    user_id: 2
+    price: 2
+  - cart_id: 3
+    user_id: 3
+    price: 3
+  - cart_id: 4
+    user_id: 4
+    price: 4
