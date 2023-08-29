@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: coffee
+  namespace: argo
+spec:
+  goTemplate: true
+  generators:
+  - git:
+      repoURL: https://github.com/PeppyDays/learning-gitops.git
+      revision: main
+      directories:
+      - path: gitops/applications/coffee/*
+      requeueAfterSeconds: 20
+  syncPolicy: {}
+  template:
+    metadata:
+      name: '{{ .path.basenameNormalized }}'
+      namespace: argo
+    spec:
+      project: coffee
+      source:
+        repoURL: https://github.com/PeppyDays/learning-gitops.git
+        path: '{{ .path.path }}'
+        targetRevision: main
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: coffee
+      syncPolicy:
+        automated:
+          allowEmpty: true
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true

@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: coffee
+  namespace: argo
+spec:
+  description: Coffee product
+  sourceRepos:
+  - '*'
+  destinations:
+  - server: https://kubernetes.default.svc
+    name: in-cluster
+    namespace: coffee
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'

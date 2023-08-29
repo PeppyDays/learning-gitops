@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-bootstrap
+  namespace: argo
+spec:
+  project: platform
+  source:
+    repoURL: https://github.com/PeppyDays/learning-gitops.git
+    path: gitops/bootstrap/phase-3/external-bootstrap
+    targetRevision: main
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argo
+  syncPolicy:
+    automated:
+      allowEmpty: true
+      prune: true
+      selfHeal: true
+    syncOptions: []
