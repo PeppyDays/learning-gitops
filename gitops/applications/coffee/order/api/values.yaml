@@ -1,0 +1,46 @@
+service:
+  name: order
+  http:
+    port: 8080
+    exposed: true
+image:
+  repository: ghcr.io/peppydays/coffee/order/api
+  tag: latest
+  pullPolicy: IfNotPresent
+env:
+  - name: TZ
+    value: UTC
+resources:
+  app:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 64Mi
+deployment:
+  kind: Deployment
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+autoscaling:
+  minReplicas: 1
+  maxReplicas: 1
+livenessProbe:
+  enabled: true
+  path: /
+  initialDelaySeconds: 5
+readinessProbe:
+  enabled: true
+  path: /
+  initialDelaySeconds: 5
+ingress:
+  enabled: true
+  hosts:
+    - host: order.example.com
+      paths:
+        - path: /
+secrets:
+  db:
+    - order-db
