@@ -1,0 +1,36 @@
+{{- $name := include "service.name" . }}
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "service.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    {{- if eq .Values.deployment.kind "Deployment"}}
+    apiVersion: apps/v1
+    {{- else if eq .Values.deployment.kind "Rollout" }}
+    apiVersion: argoproj.io/v1alpha1
+    {{- end }}
+    kind: {{ .Values.deployment.kind }}
+    name: {{ $name }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+  {{- if and (ne .Values.autoscaling.minReplicas .Values.autoscaling.maxReplicas) .Values.autoscaling.targetMemoryUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+  {{- end }}
+  {{- if and (ne .Values.autoscaling.minReplicas .Values.autoscaling.maxReplicas) .Values.autoscaling.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+  {{- end }}

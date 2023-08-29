@@ -1,0 +1,87 @@
+{{- $name := include "service.name" . }}
+
+{{- if eq .Values.deployment.kind "Deployment"}}
+apiVersion: apps/v1
+{{- else if eq .Values.deployment.kind "Rollout" }}    
+apiVersion: argoproj.io/v1alpha1
+{{- end }}
+kind: {{ .Values.deployment.kind }}
+metadata:
+  name: {{ $name }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      {{- include "service.selectorLabels" . | nindent 6 }}
+  strategy:
+{{ toYaml .Values.deployment.strategy | indent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "service.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: app
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        {{- range $db_secret_name := .Values.secrets.db }}
+        - name: {{ $db_secret_name | snakecase | upper }}_HOST
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db_secret_name }}
+              key: host
+        - name: {{ $db_secret_name | snakecase | upper }}_PORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db_secret_name }}
+              key: port
+        - name: {{ $db_secret_name | snakecase | upper }}_SCHEMA
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db_secret_name }}
+              key: schema
+        - name: {{ $db_secret_name | snakecase | upper }}_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db_secret_name }}
+              key: username
+        - name: {{ $db_secret_name | snakecase | upper }}_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ $db_secret_name }}
+              key: password
+        {{- end }}
+{{ toYaml .Values.env | indent 8 }}
+        ports:
+        - name: http
+          protocol: TCP
+          containerPort: {{ .Values.service.http.port }}
+        {{- if .Values.livenessProbe.enabled }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.livenessProbe.path }}
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        {{- end }}
+        {{- if .Values.readinessProbe.enabled }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.readinessProbe.path }}
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 2
+        {{- end }}
+        resources:
+{{ toYaml .Values.resources.app | indent 10 }}
+      restartPolicy: Always

@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: "1.0"
+description: Mini service's Helm chart for Kubernetes
+name: mini
+version: 1.0.0
+type: application
