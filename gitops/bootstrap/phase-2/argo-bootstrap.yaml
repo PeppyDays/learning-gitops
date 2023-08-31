@@ -6,7 +6,7 @@ metadata:
 spec:
   project: platform
   source:
-    repoURL: https://github.com/PeppyDays/learning-gitops.git
+    repoURL: https://github.com/2mason/learning-gitops.git
     path: gitops/bootstrap/phase-2/argo-bootstrap
     targetRevision: main
   destination:
