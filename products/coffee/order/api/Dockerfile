@@ -33,7 +33,7 @@ COPY --from=builder /app/dist .
 COPY config.yaml ./
 COPY docker-entrypoint.sh .
 
-LABEL org.opencontainers.image.source=https://github.com/PeppyDays/learning-gitops
+LABEL org.opencontainers.image.source=https://github.com/hurest/learning-gitops
 
 RUN ./.venv/bin/pip install --no-cache-dir *.whl
 

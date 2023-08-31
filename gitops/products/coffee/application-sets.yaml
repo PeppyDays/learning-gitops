@@ -7,7 +7,7 @@ spec:
   goTemplate: true
   generators:
   - git:
-      repoURL: https://github.com/PeppyDays/learning-gitops.git
+      repoURL: https://github.com/hurest/learning-gitops.git
       revision: main
       directories:
       - path: gitops/applications/coffee/*
@@ -20,7 +20,7 @@ spec:
     spec:
       project: coffee
       source:
-        repoURL: https://github.com/PeppyDays/learning-gitops.git
+        repoURL: https://github.com/hurest/learning-gitops.git
         path: '{{ .path.path }}'
         targetRevision: main
       destination:
