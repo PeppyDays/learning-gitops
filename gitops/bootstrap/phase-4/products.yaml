@@ -6,7 +6,7 @@ metadata:
 spec:
   project: platform
   source:
-    repoURL: https://github.com/PeppyDays/learning-gitops.git
+    repoURL: https://github.com/woonoh/learning-gitops.git
     path: gitops/products
     targetRevision: main
   destination:
