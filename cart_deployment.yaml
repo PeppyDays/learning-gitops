@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: cart
+  name: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cart
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: cart
+    spec:
+      containers:
+      - image: ghcr.io/anjeongkyun/coffee/cart/api:latest
+        name: api
+        env:
+          - name: CART_DB_HOST
+            value: db
+          - name: CART_DB_PORT
+            value: "3306"
+          - name: CART_DB_USERNAME
+            value: cart
+          - name: CART_DB_PASSWORD
+            value: welcome
+        resources: {}
+status: {}
