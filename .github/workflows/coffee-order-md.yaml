@@ -1,0 +1,103 @@
+on:
+  workflow_dispatch:
+
+name: Coffee Order MD
+run-name: Coffee Order MD by @${{ github.actor }}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  PRODUCT_NAME: coffee
+  SERVICE_NAME: order
+  MODULE_NAME: api
+  APPLICATION_PATH: products/coffee/order/api
+  GITOPS_APPLICATION_PATH: gitops/applications/coffee/order/api
+  IMAGE_REPOSITORY: ghcr.io/${{ github.repository_owner }}/coffee/order/api
+
+jobs:
+  build-and-push-in-branch:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    if: ${{ github.ref_type == 'branch' }}
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Set Variables
+        id: set-vars
+        run: |
+          echo "IMAGE_REPOSITORY=`echo ${{ env.IMAGE_REPOSITORY }} | tr '[:upper:]' '[:lower:]'`" >> $GITHUB_ENV
+          echo "IMAGE_TAG=feature-`echo ${GITHUB_SHA::7}`" >> $GITHUB_ENV
+      - name: Checkout Application Code
+        uses: actions/checkout@v3
+        with:
+          sparse-checkout: |
+            ${{ env.APPLICATION_PATH }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Build and Push
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ env.APPLICATION_PATH }}
+          platforms: linux/amd64,linux/arm64
+          file: ${{ env.APPLICATION_PATH }}/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          cache-from: type=registry,ref=${{ env.IMAGE_REPOSITORY }}:cache
+          cache-to: type=registry,ref=${{ env.IMAGE_REPOSITORY }}:cache,mode=max
+  deploy:
+    name: Deploy
+    needs:
+      - build-and-push-in-branch
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Set Variables
+        id: set-vars
+        run: |
+          if [[ ${{ github.ref_type }} == 'branch' ]]; then
+            export IMAGE_TAG=feature-`echo ${GITHUB_SHA::7}`
+          elif [[ ${{ github.ref_type }} == 'tag' && ${{ github.ref_name }} =~ .*latest ]]; then
+            export SHA=`gh api repos/${{ github.repository }}/git/refs/tags/${{ env.PRODUCT_NAME }}/${{ env.SERVICE_NAME }}/${{ env.MODULE_NAME }}/latest | jq -r '.object.sha'`
+            export IMAGE_TAG=${SHA::7}
+          else
+            export IMAGE_TAG=`echo ${{ github.ref_name }} | cut -d '/' -f4`
+          fi
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+      - name: Checkout GitOps Code
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          sparse-checkout: |
+            ${{ env.GITOPS_APPLICATION_PATH }}
+      - name: Update Image Tag and Commit
+        run: |
+          pushd ${{ env.GITOPS_APPLICATION_PATH }}
+          yq -P -i '.image.tag = "${{ env.IMAGE_TAG }}"' values.yaml
+          git config --global user.email "$GITHUB_ACTOR@users.noreply.github.com"
+          git config --global user.name "$GITHUB_ACTOR"
+          git add .
+          git commit -m "Update image :: ${{ env.PRODUCT_NAME }} :: ${{ env.SERVICE_NAME }} :: api :: ${{ env.IMAGE_TAG }}"
+      - name: Push Committed Files
+        uses: nick-fields/retry@v2
+        with:
+          timeout_seconds: 10
+          max_attempts: 5
+          retry_on: error
+          command: |
+            git pull --rebase
+            git push -u origin
