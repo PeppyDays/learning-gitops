@@ -4,27 +4,27 @@ kind: Kustomization
 namespace: argo
 
 resources:
-- https://raw.githubusercontent.com/argoproj/argo-cd/v2.8.0/manifests/install.yaml
-- argocd-server-ingress.yaml
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.8.2/manifests/install.yaml
+  - argocd-server-ingress.yaml
 
 patches:
-- target:
-    group: rbac.authorization.k8s.io
-    version: v1
-    kind: ClusterRoleBinding
-  patch: |-
-    - op: replace
-      path: /subjects/0/namespace
-      value: argo
-- path: overlays/argocd-cm.yaml
-  target:
-    kind: ConfigMap
-    name: argocd-cm
-- path: overlays/argocd-cmd-params-cm.yaml
-  target:
-    kind: ConfigMap
-    name: argocd-cmd-params-cm
-- path: overlays/argocd-secret.yaml
-  target:
-    kind: Secret
-    name: argocd-secret
+  - target:
+      group: rbac.authorization.k8s.io
+      version: v1
+      kind: ClusterRoleBinding
+    patch: |-
+      - op: replace
+        path: /subjects/0/namespace
+        value: argo
+  - path: overlays/argocd-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm
+  - path: overlays/argocd-cmd-params-cm.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cmd-params-cm
+  - path: overlays/argocd-secret.yaml
+    target:
+      kind: Secret
+      name: argocd-secret
