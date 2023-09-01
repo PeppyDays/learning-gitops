@@ -9,7 +9,6 @@ class Cart:
     user_id: int
     price: int
 
-
 class CartRepository(abc.ABC):
     @abc.abstractmethod
     def find_by_cart_id(self, cart_id: int) -> Cart:
