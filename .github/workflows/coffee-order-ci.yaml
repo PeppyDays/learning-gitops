@@ -1,0 +1,56 @@
+on:
+  pull_request:
+    paths:
+      - .github/workflows/coffee-order-ci.yaml
+      - products/coffee/order/**
+
+name: Coffee Order CI
+run-name: Coffee Order CI by @${{ github.actor }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  APPLICATION_PATH: products/coffee/order/api
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Application Code
+        uses: actions/checkout@v3
+        with:
+          sparse-checkout: |
+            ${{ env.APPLICATION_PATH }}
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "poetry"
+      - name: Install Dependencies
+        run: |
+          pushd ${{ env.APPLICATION_PATH }}
+          poetry env use 3.11
+          poetry install --with test --without dev
+          poetry install --only-root
+      - name: Run tests
+        run: |
+          pushd ${{ env.APPLICATION_PATH }}
+          make test
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Application Code
+        uses: actions/checkout@v3
+        with:
+          sparse-checkout: |
+            ${{ env.APPLICATION_PATH }}
+      - name: Build
+        run: |
+          pushd ${{ env.APPLICATION_PATH }}
+          docker build . -t order:latest
