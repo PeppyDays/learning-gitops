@@ -8,7 +8,7 @@ packages = [{include = "order", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "^0.101.0"
+fastapi = "^0.109.1"
 pyyaml = "^6.0.1"
 uvicorn = "^0.23.2"
 
